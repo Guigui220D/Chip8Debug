@@ -51,8 +51,7 @@ void debugdraw()
     debug->draw(text);
     s.str(std::string());
 
-    unsigned short op = cm.getOp();
-    s << "OP : 0x" << std::hex << op;
+    s << "OP : 0x" << std::hex << cm.getOp() << "   NEXT OP : 0x"  << cm.getNextOp();
     text.setPosition(sf::Vector2f(10, 16));
     text.setString(s.str());
     debug->draw(text);
@@ -87,6 +86,18 @@ void debugdraw()
         debug->draw(text);
         s.str(std::string());
     }
+
+    s << "SOUND TIMER : 0x" << std::hex << (int)cm.getTimer();
+    text.setPosition(sf::Vector2f(200, 200));
+    text.setString(s.str());
+    debug->draw(text);
+    s.str(std::string());
+
+    s << "DELAY TIMER : 0x" << std::hex << (int)cm.getSoundTimer();
+    text.setPosition(sf::Vector2f(200, 216));
+    text.setString(s.str());
+    debug->draw(text);
+    s.str(std::string());
 }
 
 int main()
@@ -98,7 +109,7 @@ int main()
 
     cm = ChipMachine();
     cm.init();
-    cm.loadProgram("roms/tictac.rom");
+    cm.loadProgram("roms/invaders.c8");
     while (!cm.hasToStop && window->isOpen())
     {
         sf::Event event;
@@ -112,6 +123,8 @@ int main()
                     pause = !pause;
                 if (event.key.code == sf::Keyboard::S)
                     step = true;
+                if (event.key.code == sf::Keyboard::W && pause)
+                    cm.gotoPrevOp();
             }
         }
         sf::Event devent;
@@ -125,6 +138,8 @@ int main()
                     pause = !pause;
                 if (devent.key.code == sf::Keyboard::S)
                     step = true;
+                if (devent.key.code == sf::Keyboard::W && pause)
+                    cm.gotoPrevOp();
             }
         }
         if (!pause || step)

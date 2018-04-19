@@ -18,6 +18,7 @@ void
 ChipMachine::init()
 {
     //Reset everything
+    clk = sf::Clock();
     hasToStop = false;
     pc = 0x200;
     i = 0;
@@ -40,6 +41,14 @@ ChipMachine::init()
 void
 ChipMachine::emulateCycle()
 {
+    if (clk.getElapsedTime().asMilliseconds() >= 16.67)
+    {
+        clk.restart();
+            if (soundTimer > 0)
+        soundTimer--;
+            if (delayTimer > 0)
+        delayTimer--;
+    }
     if (hasToStop)
         return;
     pcChanged = false;
@@ -275,6 +284,12 @@ ChipMachine::getOp()
     return (mem[pc] << 8) | mem[pc + 1];
 }
 
+unsigned short
+ChipMachine::getNextOp()
+{
+    return (mem[pc + 2] << 8) | mem[pc + 3];
+}
+
 unsigned char
 ChipMachine::getVxReg(int x)
 {
@@ -287,6 +302,24 @@ unsigned short
 ChipMachine::getIReg()
 {
     return i;
+}
+
+unsigned char
+ChipMachine::getTimer()
+{
+    return delayTimer;
+}
+
+unsigned char
+ChipMachine::getSoundTimer()
+{
+    return soundTimer;
+}
+
+void
+ChipMachine::gotoPrevOp()
+{
+    pc -= 2;
 }
 
 

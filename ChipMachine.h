@@ -1,5 +1,6 @@
 #ifndef CHIPMACHINE_H
 #define CHIPMACHINE_H
+#include <SFML/System.hpp>
 
 class ChipMachine
 {
@@ -18,20 +19,28 @@ class ChipMachine
 		unsigned char getVxReg(int x);
 		unsigned short getIReg();
 
-        unsigned char delayTimer, soundTimer;   //Timers that are decremented at a 60Hz rate
-        unsigned short pc;                      //Program counter
-        unsigned char sp;                       //Stack pointer
-        unsigned short pstack[16];
+		unsigned short pc;                      //Program counter
+
+        unsigned char getTimer();
+        unsigned char getSoundTimer();
 
         unsigned short getOp();
+        unsigned short getNextOp();
+
+        void gotoPrevOp();
     private:
         unsigned char mem[MEMSIZE];             //The 4 ko ram
         unsigned char v[16];                    //The 16 Vx 8 bits registers
-        unsigned short i;                       //The I 16 bits register
+        unsigned short i;
+        unsigned char delayTimer, soundTimer;   //Timers that are decremented at a 60Hz rate
+        unsigned char sp;                       //Stack pointer
+        unsigned short pstack[16];                  //The I 16 bits register
 
         bool pcChanged;
 
         void clearScreen();
+
+        sf::Clock clk;
 
         //The characters graphics
         unsigned char chars[80] =
