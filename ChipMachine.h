@@ -25,7 +25,7 @@ class ChipMachine
         unsigned char getSoundTimer();
 
         unsigned short getOp();
-        unsigned short getNextOp();
+        unsigned short getOp(unsigned short pos);
 
         void gotoPrevOp();
     private:

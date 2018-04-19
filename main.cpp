@@ -10,8 +10,10 @@ sf::RenderWindow* debug = new sf::RenderWindow(sf::VideoMode(600, 400), "Debug")
 sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode(640, 320), "Chip Eight Emu");
 sf::Font font;
 sf::Text text;
+bool debugMode = true;
 bool pause = false;
 bool step = false;
+unsigned short explorerPos = 0x200;
 
 void draw()
 {
@@ -33,75 +35,109 @@ void draw()
 
 void debugdraw()
 {
-    std::stringstream s;
-
-    text.setPosition(sf::Vector2f(10, 370));
-    text.setString("PAUSE : P, STEP : S");
-    debug->draw(text);
-    if (pause)
+    if (debugMode)
     {
-        text.setPosition(sf::Vector2f(250, 370));
-        text.setString("PAUSED");
+        std::stringstream s;
+        text.setPosition(sf::Vector2f(10, 370));
+        text.setString("PAUSE : P, STEP : S, RESET : R, DEBUG MODE : M (ON)");
         debug->draw(text);
-    }
+        if (pause)
+        {
+            text.setPosition(sf::Vector2f(520, 0));
+            text.setString("PAUSED");
+            debug->draw(text);
+        }
 
-    s << "PC : 0x " << std::hex << cm.pc;
-    text.setPosition(sf::Vector2f(10, 0));
-    text.setString(s.str());
-    debug->draw(text);
-    s.str(std::string());
-
-    s << "OP : 0x" << std::hex << cm.getOp() << "   NEXT OP : 0x"  << cm.getNextOp();
-    text.setPosition(sf::Vector2f(10, 16));
-    text.setString(s.str());
-    debug->draw(text);
-    s.str(std::string());
-
-    s << "I : 0x" << std::hex << cm.getIReg();
-    text.setPosition(sf::Vector2f(10, 48));
-    text.setString(s.str());
-    debug->draw(text);
-    s.str(std::string());
-
-    for (int x = 0; x < 16; x++)
-    {
-        s << "V" << x << " : 0x" << std::hex << (int)cm.getVxReg(x);
-        text.setPosition(sf::Vector2f(10, 72 + x * 16));
+        s << "PC : 0x " << std::hex << cm.pc;
+        text.setPosition(sf::Vector2f(10, 0));
         text.setString(s.str());
         debug->draw(text);
         s.str(std::string());
-    }
 
-    text.setPosition(sf::Vector2f(200, 80));
-    text.setString("KEYS : ");
-    debug->draw(text);
-    s.str(std::string());
-
-    for (int x = 0; x < 4; x++)
-    for (int y = 0; y < 4; y++)
-    {
-        s << '[' << (x + y * 4) << ":" << std::hex << (int)cm.keys[x + y * 4] << ']';
-        text.setPosition(sf::Vector2f(x * 64 + 200, y * 16 + 100));
+        s << "OP : 0x" << std::hex << cm.getOp();
+        text.setPosition(sf::Vector2f(10, 16));
         text.setString(s.str());
         debug->draw(text);
         s.str(std::string());
+
+        s << "I : 0x" << std::hex << cm.getIReg();
+        text.setPosition(sf::Vector2f(10, 48));
+        text.setString(s.str());
+        debug->draw(text);
+        s.str(std::string());
+
+        for (int x = 0; x < 16; x++)
+        {
+            s << "V" << x << " : 0x" << std::hex << (int)cm.getVxReg(x);
+            text.setPosition(sf::Vector2f(10, 74 + x * 16));
+            text.setString(s.str());
+            debug->draw(text);
+            s.str(std::string());
+        }
+
+        text.setPosition(sf::Vector2f(200, 48));
+        text.setString("KEYS : ");
+        debug->draw(text);
+        s.str(std::string());
+
+        for (int x = 0; x < 4; x++)
+        for (int y = 0; y < 4; y++)
+        {
+            s << '[' << (x + y * 4) << ":" << std::hex << (int)cm.keys[x + y * 4] << ']';
+            text.setPosition(sf::Vector2f(x * 64 + 200, y * 16 + 64));
+            text.setString(s.str());
+            debug->draw(text);
+            s.str(std::string());
+        }
+
+        s << "SOUND TIMER : 0x" << std::hex << (int)cm.getTimer();
+        text.setPosition(sf::Vector2f(200, 144));
+        text.setString(s.str());
+        debug->draw(text);
+        s.str(std::string());
+
+        s << "DELAY TIMER : 0x" << std::hex << (int)cm.getSoundTimer();
+        text.setPosition(sf::Vector2f(200, 160));
+        text.setString(s.str());
+        debug->draw(text);
+        s.str(std::string());
+
+        text.setPosition(sf::Vector2f(200, 224));
+        text.setString("RAM EXPLORER");
+        debug->draw(text);
+
+        s << "AT 0x" << std::hex << explorerPos;
+        text.setPosition(sf::Vector2f(200, 240));
+        text.setString(s.str());
+        debug->draw(text);
+        s.str(std::string());
+
+        s << "<-    0x" << std::hex << cm.getOp(explorerPos) << "    ->";
+        text.setPosition(sf::Vector2f(232, 272));
+        text.setString(s.str());
+        debug->draw(text);
+        s.str(std::string());
+
+        text.setPosition(sf::Vector2f(200, 304));
+        text.setString("GOTO PC : G, USE LEFT AND RIGHT");
+        debug->draw(text);
     }
-
-    s << "SOUND TIMER : 0x" << std::hex << (int)cm.getTimer();
-    text.setPosition(sf::Vector2f(200, 200));
-    text.setString(s.str());
-    debug->draw(text);
-    s.str(std::string());
-
-    s << "DELAY TIMER : 0x" << std::hex << (int)cm.getSoundTimer();
-    text.setPosition(sf::Vector2f(200, 216));
-    text.setString(s.str());
-    debug->draw(text);
-    s.str(std::string());
+    else
+    {
+        text.setPosition(sf::Vector2f(10, 0));
+        text.setString("DEBUG DISABLED");
+        debug->draw(text);
+        text.setPosition(sf::Vector2f(10, 32));
+        text.setString("PRESS M TO SWITCH IT ON");
+        debug->draw(text);
+    }
 }
 
 int main()
 {
+    debug->setPosition(sf::Vector2i());
+    window->setPosition(sf::Vector2i(600, 0));
+
     font.loadFromFile("lucon.ttf");
     text.setFont(font);
     text.setFillColor(sf::Color::Black);
@@ -109,8 +145,8 @@ int main()
 
     cm = ChipMachine();
     cm.init();
-    cm.loadProgram("roms/invaders.c8");
-    while (!cm.hasToStop && window->isOpen())
+    cm.loadProgram("roms/pong.c8");
+    while (window->isOpen())
     {
         sf::Event event;
         while (window->pollEvent(event))
@@ -123,8 +159,8 @@ int main()
                     pause = !pause;
                 if (event.key.code == sf::Keyboard::S)
                     step = true;
-                if (event.key.code == sf::Keyboard::W && pause)
-                    cm.gotoPrevOp();
+                if (event.key.code == sf::Keyboard::R)
+                    cm.init();
             }
         }
         sf::Event devent;
@@ -138,8 +174,16 @@ int main()
                     pause = !pause;
                 if (devent.key.code == sf::Keyboard::S)
                     step = true;
-                if (devent.key.code == sf::Keyboard::W && pause)
-                    cm.gotoPrevOp();
+                if (devent.key.code == sf::Keyboard::Left && debugMode)
+                    explorerPos -= 2;
+                if (devent.key.code == sf::Keyboard::Right && debugMode)
+                    explorerPos += 2;
+                if (devent.key.code == sf::Keyboard::G && debugMode)
+                    explorerPos = cm.pc;
+                if (devent.key.code == sf::Keyboard::R)
+                    cm.init();
+                if (devent.key.code == sf::Keyboard::M)
+                    debugMode = !debugMode;
             }
         }
         if (!pause || step)

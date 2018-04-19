@@ -30,8 +30,8 @@ ChipMachine::init()
         keys[i] = 0;
         v[i] = 0;
     }
-    for(int i = 0; i < 4096; ++i)
-		mem[i] = 0;
+    //for(int i = 0; i < 4096; ++i)
+		//mem[i] = 0;
 	for (unsigned char i = 0; i < 80; i++)
         mem[i] = chars[i];
     delayTimer = 0;
@@ -281,13 +281,17 @@ ChipMachine::loadProgram(char const* filename)
 unsigned short
 ChipMachine::getOp()
 {
+    if (pc < 0 || pc >= MEMSIZE - 1)
+        return 0;
     return (mem[pc] << 8) | mem[pc + 1];
 }
 
 unsigned short
-ChipMachine::getNextOp()
+ChipMachine::getOp(unsigned short pos)
 {
-    return (mem[pc + 2] << 8) | mem[pc + 3];
+    if (pos < 0 || pos >= MEMSIZE - 1)
+        return 0;
+    return (mem[pos] << 8) | mem[pos + 1];
 }
 
 unsigned char
