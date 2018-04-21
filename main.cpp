@@ -33,6 +33,7 @@ std::stringstream decomp(unsigned short op)
             break;
         }
         s << "UNKNOWN OP";
+        break;
         case (0x1000):          //JP addr
             s << std::hex << "JP " << (op & 0x0FFF);
             break;
