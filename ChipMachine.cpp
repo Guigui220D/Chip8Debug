@@ -1,3 +1,5 @@
+//https://github.com/Guigui220D/
+
 #include "ChipMachine.h"
 #include <iostream>
 #include <math.h>
@@ -14,10 +16,10 @@ ChipMachine::~ChipMachine()
 
 }
 
+//Reset everything, except ram
 void
 ChipMachine::init()
 {
-    //Reset everything
     clk = sf::Clock();
     hasToStop = false;
     pc = 0x200;
@@ -30,17 +32,17 @@ ChipMachine::init()
         keys[i] = 0;
         v[i] = 0;
     }
-    //for(int i = 0; i < 4096; ++i)
-		//mem[i] = 0;
 	for (unsigned char i = 0; i < 80; i++)
         mem[i] = chars[i];
     delayTimer = 0;
     soundTimer = 0;
 }
 
+//Emulate one cycle, this shoule be done 540 times per second
 void
 ChipMachine::emulateCycle()
 {
+    //Both timers are decreased 60 times per second
     if (clk.getElapsedTime().asMilliseconds() >= 16.67)
     {
         clk.restart();
@@ -53,6 +55,8 @@ ChipMachine::emulateCycle()
         return;
     pcChanged = false;
     unsigned short op = getOp();
+    //These are all the switch for ops
+    //I recommend this doc http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
     switch (op & 0xF000)
     {
     case (0x0000):
@@ -70,6 +74,7 @@ ChipMachine::emulateCycle()
             }
             break;
         }
+        std::cout << std::hex << "Unknown OP : " << op;
         break;
         case (0x1000):          //JP addr
             pc = op & 0x0FFF;
@@ -138,6 +143,7 @@ ChipMachine::emulateCycle()
                 v[(op & 0x0F00) >> 8] <<= 1;
                 break;
             default:
+                std::cout << std::hex << "Unknown OP : " << op;
                 break;
             }
             break;
@@ -231,7 +237,7 @@ ChipMachine::emulateCycle()
                 break;
             case (0x0033):      //LD B, Vx
                 {
-                mem[i]     = v[x] / 100;
+                mem[i] = v[x] / 100;
 				mem[i + 1] = (v[x] / 10) % 10;
 				mem[i + 2] = (v[x] % 100) % 10;
                 break;
@@ -246,10 +252,14 @@ ChipMachine::emulateCycle()
                     v[j] = mem[i + j];
                 i += x + 1;
                 break;
+            default:
+                std::cout << std::hex << "Unknown OP : " << op;
+                break;
             }
             break;
 
     }
+    //Pc changed means that the pc has been changed by an op, jp for example
     if (!pcChanged)
         pc += 2;
     if (pc >= MEMSIZE)
@@ -265,9 +275,12 @@ ChipMachine::clearScreen()
     draw = true;
 }
 
+//A rom file is loaded from disk using its path, and put in ram from 0x200
 bool
 ChipMachine::loadProgram(char const* filename)
 {
+    for(int i = 0; i < 4096; ++i)
+		mem[i] = 0;
     std::ifstream ifs(filename, std::ios::binary|std::ios::ate);
     std::ifstream::pos_type pos = ifs.tellg();
 
@@ -281,6 +294,7 @@ ChipMachine::loadProgram(char const* filename)
     return true;
 }
 
+//Takes two bytes of the program to make one op, at pc
 unsigned short
 ChipMachine::getOp()
 {
@@ -289,6 +303,7 @@ ChipMachine::getOp()
     return (mem[pc] << 8) | mem[pc + 1];
 }
 
+//Takes two bytes of the program to make one op, at a given pos
 unsigned short
 ChipMachine::getOp(unsigned short pos)
 {
@@ -297,6 +312,7 @@ ChipMachine::getOp(unsigned short pos)
     return (mem[pos] << 8) | mem[pos + 1];
 }
 
+//Getters
 unsigned char
 ChipMachine::getVxReg(int x)
 {
@@ -323,10 +339,10 @@ ChipMachine::getSoundTimer()
     return soundTimer;
 }
 
-void
-ChipMachine::gotoPrevOp()
+unsigned short
+ChipMachine::getPC()
 {
-    pc -= 2;
+    return pc;
 }
 
 

@@ -19,15 +19,14 @@ class ChipMachine
 		unsigned char getVxReg(int x);
 		unsigned short getIReg();
 
-		unsigned short pc;                      //Program counter
-
         unsigned char getTimer();
         unsigned char getSoundTimer();
 
         unsigned short getOp();
         unsigned short getOp(unsigned short pos);
 
-        void gotoPrevOp();
+        unsigned short getPC();
+
     private:
         unsigned char mem[MEMSIZE];             //The 4 ko ram
         unsigned char v[16];                    //The 16 Vx 8 bits registers
@@ -35,6 +34,7 @@ class ChipMachine
         unsigned char delayTimer, soundTimer;   //Timers that are decremented at a 60Hz rate
         unsigned char sp;                       //Stack pointer
         unsigned short pstack[16];                  //The I 16 bits register
+        unsigned short pc;                      //Program counter
 
         bool pcChanged;
 

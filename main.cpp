@@ -1,3 +1,6 @@
+//Code by Guigui220D
+//https://github.com/Guigui220D/
+
 #include <iostream>
 #include "ChipMachine.h"
 #include <SFML/Graphics.hpp>
@@ -5,14 +8,18 @@
 #include <sstream>
 #include <string>
 
+//The machine
 ChipMachine cm;
+
 sf::RenderWindow* debug = new sf::RenderWindow(sf::VideoMode(600, 400), "Debug");
 sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode(640, 320), "Chip Eight Emu");
 sf::Font font;
 sf::Text text;
+//If debugmode, debug info is displayed on the debug window
 bool debugMode = true;
 bool pause = false;
 bool step = false;
+//For the ram explorer in the debugger
 unsigned short explorerPos = 0x200;
 
 //Give the name of an op, for debugging
@@ -193,7 +200,7 @@ void debugdraw()
             debug->draw(text);
         }
 
-        s << "PC : 0x " << std::hex << cm.pc;
+        s << "PC : 0x " << std::hex << cm.getPC();
         text.setPosition(sf::Vector2f(10, 0));
         text.setString(s.str());
         debug->draw(text);
@@ -285,19 +292,24 @@ int main()
     debug->setPosition(sf::Vector2i());
     window->setPosition(sf::Vector2i(600, 0));
 
+    //The text for the debugger
     font.loadFromFile("lucon.ttf");
     text.setFont(font);
     text.setFillColor(sf::Color::Black);
     text.setCharacterSize(16);
 
+    //Init the machine and load the rom
     cm = ChipMachine();
     cm.init();
-    cm.loadProgram("roms/pong2.c8");
+    cm.loadProgram("roms/breakout.c8");
 
+    //The cpu runs 540 cycles per second
     window->setFramerateLimit(540);
 
+    //The main loop
     while (window->isOpen())
     {
+        //Register events for the game window
         sf::Event event;
         while (window->pollEvent(event))
         {
@@ -305,14 +317,18 @@ int main()
                 window->close();
             if (event.type == sf::Event::KeyPressed)
             {
+                //Pause
                 if (event.key.code == sf::Keyboard::P)
                     pause = !pause;
-                if (event.key.code == sf::Keyboard::S)
+                //Step
+                if (event.key.code == sf::Keyboard::S && pause)
                     step = true;
+                //Reset
                 if (event.key.code == sf::Keyboard::R)
                     cm.init();
             }
         }
+        //Same for the debugger
         sf::Event devent;
         while (debug->pollEvent(devent))
         {
@@ -320,24 +336,31 @@ int main()
                 window->close();
             if (devent.type == sf::Event::KeyPressed)
             {
+                //Pause
                 if (devent.key.code == sf::Keyboard::P)
                     pause = !pause;
-                if (devent.key.code == sf::Keyboard::S)
+                //Step
+                if (devent.key.code == sf::Keyboard::S && pause)
                     step = true;
+                //Navigate in the ram explorer
                 if (devent.key.code == sf::Keyboard::Left && debugMode)
                     explorerPos -= 2;
                 if (devent.key.code == sf::Keyboard::Right && debugMode)
                     explorerPos += 2;
+                //Goto pc in the ram explorer
                 if (devent.key.code == sf::Keyboard::G && debugMode)
-                    explorerPos = cm.pc;
+                    explorerPos = cm.getPC();
+                //Reset
                 if (devent.key.code == sf::Keyboard::R)
                     cm.init();
+                //Enable/disable the debugger
                 if (devent.key.code == sf::Keyboard::M)
                     debugMode = !debugMode;
             }
         }
         if (!pause || step)
         {
+            //Register all keys, from 0 to f
             cm.keys[0] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad0);
             cm.keys[1] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad1);
             cm.keys[2] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad2);
@@ -357,14 +380,16 @@ int main()
             cm.emulateCycle();
         }
         step = false;
-        //system("pause");
+        //Draw the game
         window->clear(sf::Color(0, 50, 0));
         draw();
         window->display();
+        //Draw the debugger
         debug->clear(sf::Color::White);
         debugdraw();
         debug->display();
     }
     delete(window);
+    delete(debug);
     return 0;
 }
