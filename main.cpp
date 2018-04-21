@@ -15,6 +15,145 @@ bool pause = false;
 bool step = false;
 unsigned short explorerPos = 0x200;
 
+std::stringstream decomp(unsigned short op)
+{
+    std::stringstream s;
+    switch (op & 0xF000)
+    {
+    case (0x0000):
+        if (op == 0x00E0)       //CLS
+        {
+            s << "CLS";
+        }
+        if (op == 0x00EE)       //RET
+        {
+            s << "RET";
+        }
+        break;
+        case (0x1000):          //JP addr
+            s << std::hex << "JP " << (op & 0x0FFF);
+            break;
+        case (0x2000):          //CALL addr
+            s << std::hex << "CALL " << (op & 0x0FFF);
+            break;
+        case (0x3000):          //SE Vx, byte
+            s << std::hex << "SE V" << ((op & 0x0F00) >> 8) << ", " << (op & 0x00FF);
+            break;
+        case (0x4000):          //SNE Vx, byte
+            s << std::hex << "SNE V" << ((op & 0x0F00) >> 8) << ", " << (op & 0x00FF);
+            break;
+        case (0x5000):          //SE Vx, Vy
+            s << std::hex << "SE V" << ((op & 0x0F00) >> 8) << ", V" << ((op & 0x00F0) >> 4);
+            break;
+        case (0x6000):          //LD Vx, byte
+            s << std::hex << "LD V" << ((op & 0x0F00) >> 8) << ", " << (op & 0x00FF);
+            break;
+        case (0x7000):          //ADD Vx, byte
+            s << std::hex << "ADD V" << ((op & 0x0F00) >> 8) << ", " << (op & 0x00FF);
+            break;
+        case (0x8000):
+            switch(op & 0x000F)
+            {
+            case (0x0000):      //LD Vx, Vy
+                s << std::hex << "LD V" << ((op & 0x0F00) >> 8) << ", V" << ((op & 0x00F0) >> 4);
+                break;
+            case (0x0001):      //OR Vx, Vy
+                s << std::hex << "OR V" << ((op & 0x0F00) >> 8) << ", V" << ((op & 0x00F0) >> 4);
+                break;
+            case (0x0002):      //AND Vx, Vy
+                s << std::hex << "AND V" << ((op & 0x0F00) >> 8) << ", V" << ((op & 0x00F0) >> 4);
+                break;
+            case (0x0003):      //XOR Vx, Vy
+                s << std::hex << "XOR V" << ((op & 0x0F00) >> 8) << ", V" << ((op & 0x00F0) >> 4);
+                break;
+            case (0x0004):      //ADD Vx, Vy
+                s << std::hex << "ADD V" << ((op & 0x0F00) >> 8) << ", V" << ((op & 0x00F0) >> 4);
+                break;
+            case (0x0005):      //SUB Vx, Vy
+                s << std::hex << "SUB V" << ((op & 0x0F00) >> 8) << ", V" << ((op & 0x00F0) >> 4);
+                break;
+            case (0x0006):      //SHR Vx
+                s << std::hex << "SHR V" << ((op & 0x0F00) >> 8);
+                break;
+            case (0x0007):      //SUBN Vx, Vy
+                s << std::hex << "SUBN V" << ((op & 0x0F00) >> 8) << ", V" << ((op & 0x00F0) >> 4);
+                break;
+            case (0x000E):      //SHL Vx
+                s << std::hex << "SHL V" << ((op & 0x0F00) >> 8);
+                break;
+            default:
+                s << "UNKNOWN OP";
+                break;
+            }
+            break;
+        case (0x9000):          //SNE Vx, Vy
+            s << std::hex << "SNE V" << ((op & 0x0F00) >> 8) << ", V" << ((op & 0x00F0) >> 4);
+            break;
+        case (0xA000):          //LD I, addr
+            s << std::hex << "LD I, " << (op & 0x0FFF);
+            break;
+        case (0xB000):          //JP V0, addr
+            s << std::hex << "LD V0, " << (op & 0x0FFF);
+            break;
+        case (0xC000):          //RND Vx, byte
+            s << std::hex << "RND V" << ((op & 0x0F00) >> 8) << ", " << (op & 0x00FF);
+            break;
+        case (0xD000):          //DRW Vx, Vy, nibble
+            s << std::hex << "DRW V" << ((op & 0x0F00) >> 8) << ", V" << ((op & 0x00F0) >> 4) << ", " << (op & 0x000F);
+            break;
+        case (0xE000):
+            if ((op & 0x00FF) == 0x009E)
+            {                   //SKP Vx
+                s << std::hex << "SKP V" << ((op & 0x0F00) >> 8);
+                break;
+            }
+            if ((op & 0x00FF) == 0x00A1)
+            {                   //SKNP Vx
+                s << std::hex << "SKNP V" << ((op & 0x0F00) >> 8);
+                break;
+            }
+            break;
+        case (0xF000):
+            unsigned char x = ((op & 0x0F00) >> 8);
+            switch (op & 0x00FF)
+            {
+            case (0x0007):      //LD Vx DT
+                s << std::hex << "LD V" << ((op & 0x0F00) >> 8) << ", DT";
+                break;
+            case (0x000A):      //LD Vx, K
+                s << std::hex << "LD V" << ((op & 0x0F00) >> 8) << ", K";
+                break;
+            case (0x0015):      //LD DT, Vx
+                s << std::hex << "LD DT, " << ((op & 0x0F00) >> 8);
+                break;
+            case (0x0018):      //LD ST, Vx
+                s << std::hex << "LD ST, " << ((op & 0x0F00) >> 8);
+                break;
+            case (0x001E):      //ADD I, Vx
+                s << std::hex << "ADD I, " << ((op & 0x0F00) >> 8);
+                break;
+            case (0x0029):      //LD F, Vx
+                s << std::hex << "LD F, " << ((op & 0x0F00) >> 8);
+                break;
+            case (0x0033):      //LD B, Vx
+                s << std::hex << "LD B, " << ((op & 0x0F00) >> 8);
+                break;
+            case (0x0055):      //LD [I], Vx
+                s << std::hex << "LD [I], " << ((op & 0x0F00) >> 8);
+                break;
+            case (0x0065):      //LD Vx, [I]
+                s << std::hex << "LD V" << ((op & 0x0F00) >> 8) << ", [I]";
+                break;
+            default :
+                s << "UNKNOWN OP";
+                break;
+            }
+            break;
+    }
+    return s;
+}
+
+//The game draw
 void draw()
 {
     sf::RectangleShape rs;
@@ -33,6 +172,7 @@ void draw()
     }
 }
 
+//The debug window draw
 void debugdraw()
 {
     if (debugMode)
@@ -54,7 +194,7 @@ void debugdraw()
         debug->draw(text);
         s.str(std::string());
 
-        s << "OP : 0x" << std::hex << cm.getOp();
+        s << "OP : 0x" << std::hex << cm.getOp() << "    \"" << decomp(cm.getOp()).str() << "\"";
         text.setPosition(sf::Vector2f(10, 16));
         text.setString(s.str());
         debug->draw(text);
@@ -145,7 +285,9 @@ int main()
 
     cm = ChipMachine();
     cm.init();
-    cm.loadProgram("roms/pong.c8");
+    cm.loadProgram("roms/pong2.c8");
+
+    window->setFramerateLimit(540);
     while (window->isOpen())
     {
         sf::Event event;

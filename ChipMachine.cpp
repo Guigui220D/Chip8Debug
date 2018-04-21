@@ -172,13 +172,13 @@ ChipMachine::emulateCycle()
             if ((op & 0x00FF) == 0x009E)
             {                   //SKP Vx
                 if (keys[v[(op & 0x0F00) >> 8]])
-                    pc++;
+                    pc+=2;
                 break;
             }
             if ((op & 0x00FF) == 0x00A1)
             {                   //SKNP Vx
                 if (!keys[v[(op & 0x0F00) >> 8]])
-                    pc++;
+                    pc+=2;
                 break;
             }
             break;
