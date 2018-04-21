@@ -279,7 +279,7 @@ ChipMachine::clearScreen()
 bool
 ChipMachine::loadProgram(char const* filename)
 {
-    for(int i = 0; i < 4096; ++i)
+    for(int i = 0x200; i < 4096; ++i)
 		mem[i] = 0;
     std::ifstream ifs(filename, std::ios::binary|std::ios::ate);
     std::ifstream::pos_type pos = ifs.tellg();

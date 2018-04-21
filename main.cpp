@@ -301,7 +301,7 @@ int main()
     //Init the machine and load the rom
     cm = ChipMachine();
     cm.init();
-    cm.loadProgram("roms/breakout.c8");
+    cm.loadProgram("roms/pong.c8");
 
     //The cpu runs 540 cycles per second
     window->setFramerateLimit(540);
