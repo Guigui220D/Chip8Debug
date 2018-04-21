@@ -15,6 +15,7 @@ bool pause = false;
 bool step = false;
 unsigned short explorerPos = 0x200;
 
+//Give the name of an op, for debugging
 std::stringstream decomp(unsigned short op)
 {
     std::stringstream s;
@@ -24,12 +25,14 @@ std::stringstream decomp(unsigned short op)
         if (op == 0x00E0)       //CLS
         {
             s << "CLS";
+            break;
         }
         if (op == 0x00EE)       //RET
         {
             s << "RET";
+            break;
         }
-        break;
+        s << "UNKNOWN OP";
         case (0x1000):          //JP addr
             s << std::hex << "JP " << (op & 0x0FFF);
             break;
@@ -112,9 +115,10 @@ std::stringstream decomp(unsigned short op)
                 s << std::hex << "SKNP V" << ((op & 0x0F00) >> 8);
                 break;
             }
+            s << "UNKNOWN OP";
             break;
         case (0xF000):
-            unsigned char x = ((op & 0x0F00) >> 8);
+            unsigned short x = ((op & 0x0F00) >> 8);
             switch (op & 0x00FF)
             {
             case (0x0007):      //LD Vx DT
@@ -254,8 +258,8 @@ void debugdraw()
         debug->draw(text);
         s.str(std::string());
 
-        s << "<-    0x" << std::hex << cm.getOp(explorerPos) << "    ->";
-        text.setPosition(sf::Vector2f(232, 272));
+        s << "<-    0x" << std::hex << cm.getOp(explorerPos) << "    ->    (\"" << decomp(cm.getOp(explorerPos)).str() << "\")";
+        text.setPosition(sf::Vector2f(184, 272));
         text.setString(s.str());
         debug->draw(text);
         s.str(std::string());
@@ -290,6 +294,7 @@ int main()
     cm.loadProgram("roms/pong2.c8");
 
     window->setFramerateLimit(540);
+
     while (window->isOpen())
     {
         sf::Event event;

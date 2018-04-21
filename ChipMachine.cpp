@@ -156,6 +156,7 @@ ChipMachine::emulateCycle()
             v[(op & 0x0F00) >> 8] = ((rand() %  255) & (op & 0x00FF));
             break;
         case (0xD000):          //DRW Vx, Vy, nibble
+            v[15] = 0;
             for (unsigned char x = 0; x < 8; x++)
             {
                 for (unsigned char y = 0; y < (op & 0x000F); y++)
@@ -163,7 +164,8 @@ ChipMachine::emulateCycle()
                     unsigned char xx = (x + v[(op & 0x0F00) >> 8]) % 64;
                     unsigned char yy = (y + v[(op & 0x00F0) >> 4]) % 32;
                     unsigned char pxl = ((mem[i + y] & (0x0080 >> x)) != 0);
-                    v[15] = screen[xx][yy];
+                    if ((screen[xx][yy] == 1) & (pxl == 1))
+                    v[15] = 1;
                     screen[xx][yy] ^= pxl;
                 }
             }
@@ -216,6 +218,12 @@ ChipMachine::emulateCycle()
                 soundTimer = v[x];
                 break;
             case (0x001E):      //ADD I, Vx
+                if(i + v[x] > 0x0FFF)
+                {
+                    v[15] = 1;
+                }
+				else
+                    v[15] = 0;
                 i += v[x];
                 break;
             case (0x0029):      //LD F, Vx
@@ -223,25 +231,20 @@ ChipMachine::emulateCycle()
                 break;
             case (0x0033):      //LD B, Vx
                 {
-                unsigned short vv = v[x];
-                mem[i + 2] = vv % 10;
-                vv /= 10;
-                mem[i + 1] = vv % 10;
-                vv /= 10;
-                mem[i] = vv % 10;
+                mem[i]     = v[x] / 100;
+				mem[i + 1] = (v[x] / 10) % 10;
+				mem[i + 2] = (v[x] % 100) % 10;
                 break;
                 }
             case (0x0055):      //LD [I], Vx
-                for (int j = 0; j < x; j++)
-                {
+                for (int j = 0; j <= x; ++j)
                     mem[i + j] = v[j];
-                }
+                i += x + 1;
                 break;
             case (0x0065):      //LD Vx, [I]
-                for (int j = 0; j < x; j++)
-                {
+                for (int j = 0; j <= x; ++j)
                     v[j] = mem[i + j];
-                }
+                i += x + 1;
                 break;
             }
             break;
