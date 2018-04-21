@@ -118,31 +118,31 @@ std::stringstream decomp(unsigned short op)
             switch (op & 0x00FF)
             {
             case (0x0007):      //LD Vx DT
-                s << std::hex << "LD V" << ((op & 0x0F00) >> 8) << ", DT";
+                s << std::hex << "LD V" << x << ", DT";
                 break;
             case (0x000A):      //LD Vx, K
-                s << std::hex << "LD V" << ((op & 0x0F00) >> 8) << ", K";
+                s << std::hex << "LD V" << x << ", K";
                 break;
             case (0x0015):      //LD DT, Vx
-                s << std::hex << "LD DT, " << ((op & 0x0F00) >> 8);
+                s << std::hex << "LD DT, V" << x;
                 break;
             case (0x0018):      //LD ST, Vx
-                s << std::hex << "LD ST, " << ((op & 0x0F00) >> 8);
+                s << std::hex << "LD ST, V" << x;
                 break;
             case (0x001E):      //ADD I, Vx
-                s << std::hex << "ADD I, " << ((op & 0x0F00) >> 8);
+                s << std::hex << "ADD I, V" << x;
                 break;
             case (0x0029):      //LD F, Vx
-                s << std::hex << "LD F, " << ((op & 0x0F00) >> 8);
+                s << std::hex << "LD F, V" << x;
                 break;
             case (0x0033):      //LD B, Vx
-                s << std::hex << "LD B, " << ((op & 0x0F00) >> 8);
+                s << std::hex << "LD B, V " << x;
                 break;
             case (0x0055):      //LD [I], Vx
-                s << std::hex << "LD [I], " << ((op & 0x0F00) >> 8);
+                s << std::hex << "LD [I], V" << x;
                 break;
             case (0x0065):      //LD Vx, [I]
-                s << std::hex << "LD V" << ((op & 0x0F00) >> 8) << ", [I]";
+                s << std::hex << "LD V" << x << ", [I]";
                 break;
             default :
                 s << "UNKNOWN OP";
@@ -194,7 +194,9 @@ void debugdraw()
         debug->draw(text);
         s.str(std::string());
 
-        s << "OP : 0x" << std::hex << cm.getOp() << "    \"" << decomp(cm.getOp()).str() << "\"";
+        s << "OP : 0x" << std::hex << cm.getOp();
+        if (pause)
+            s << "    \"" << decomp(cm.getOp()).str() << "\"";
         text.setPosition(sf::Vector2f(10, 16));
         text.setString(s.str());
         debug->draw(text);
