@@ -5,6 +5,7 @@
 #include <math.h>
 #include <fstream>
 #include <vector>
+#include <windows.h>
 
 ChipMachine::ChipMachine()
 {
@@ -20,6 +21,7 @@ ChipMachine::~ChipMachine()
 void
 ChipMachine::init()
 {
+    std::cout << "Initialisation\n";
     clk = sf::Clock();
     hasToStop = false;
     pc = 0x200;
@@ -60,6 +62,8 @@ ChipMachine::emulateCycle()
     switch (op & 0xF000)
     {
     case (0x0000):
+        if (op == 0)
+            break;
         if (op == 0x00E0)       //CLS
         {
             clearScreen();
@@ -74,7 +78,7 @@ ChipMachine::emulateCycle()
             }
             break;
         }
-        std::cout << std::hex << "Unknown OP : " << op;
+        std::cout << std::hex << "Unknown OP : " << op << '\n';
         break;
         case (0x1000):          //JP addr
             pc = op & 0x0FFF;
@@ -143,7 +147,7 @@ ChipMachine::emulateCycle()
                 v[(op & 0x0F00) >> 8] <<= 1;
                 break;
             default:
-                std::cout << std::hex << "Unknown OP : " << op;
+                std::cout << std::hex << "Unknown OP : " << op << '\n';
                 break;
             }
             break;
@@ -221,7 +225,12 @@ ChipMachine::emulateCycle()
                 delayTimer = v[x];
                 break;
             case (0x0018):      //LD ST, Vx
-                soundTimer = v[x];
+                if (falseSound)
+                {
+                    Beep(440, v[x] * 1000 / 60);
+                }
+                else
+                    soundTimer = v[x];
                 break;
             case (0x001E):      //ADD I, Vx
                 if(i + v[x] > 0x0FFF)
@@ -253,7 +262,7 @@ ChipMachine::emulateCycle()
                 i += x + 1;
                 break;
             default:
-                std::cout << std::hex << "Unknown OP : " << op;
+                std::cout << std::hex << "Unknown OP : " << op << '\n';
                 break;
             }
             break;
@@ -262,8 +271,11 @@ ChipMachine::emulateCycle()
     //Pc changed means that the pc has been changed by an op, jp for example
     if (!pcChanged)
         pc += 2;
-    if (pc >= MEMSIZE)
+    if (pc >= MEMSIZE && !hasToStop)
+    {
+        std::cout << "PC reached max pos in ram, end of program\n";
         hasToStop = true;
+    }
 }
 
 void
@@ -279,15 +291,23 @@ ChipMachine::clearScreen()
 bool
 ChipMachine::loadProgram(char const* filename)
 {
+    std::cout << "Loading " << filename << "...\n";
     for(int i = 0x200; i < 4096; ++i)
 		mem[i] = 0;
-    std::ifstream ifs(filename, std::ios::binary|std::ios::ate);
-    std::ifstream::pos_type pos = ifs.tellg();
-
-    std::vector<char> result(pos);
-
-    ifs.seekg(0, std::ios::beg);
-    ifs.read(&result[0], pos);
+    std::vector<char> result;
+    try
+    {
+        std::ifstream ifs(filename, std::ios::binary|std::ios::ate);
+        std::ifstream::pos_type pos = ifs.tellg();
+        result = std::vector<char>(pos);
+        ifs.seekg(0, std::ios::beg);
+        ifs.read(&result[0], pos);
+        std::cout << "Rom loaded\n";
+    }
+    catch (const std::exception&)
+    {
+        std::cout << "Could not read rom!\n";
+    }
 
     for (unsigned int i = 0; i < result.size(); i++)
         mem[0x200 + i] = result[i];
@@ -344,5 +364,7 @@ ChipMachine::getPC()
 {
     return pc;
 }
+
+
 
 

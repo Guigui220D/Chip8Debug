@@ -8,11 +8,13 @@
 #include <sstream>
 #include <string>
 
+
 //The machine
 ChipMachine cm;
-
-sf::RenderWindow* debug = new sf::RenderWindow(sf::VideoMode(600, 400), "Debug");
-sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode(640, 320), "Chip Eight Emu");
+//The windows
+sf::RenderWindow* debug;
+sf::RenderWindow* window;
+//For the debugging window
 sf::Font font;
 sf::Text text;
 //If debugmode, debug info is displayed on the debug window
@@ -29,6 +31,11 @@ std::stringstream decomp(unsigned short op)
     switch (op & 0xF000)
     {
     case (0x0000):
+        if (op == 0)
+        {
+            s << "NOP";
+            break;
+        }
         if (op == 0x00E0)       //CLS
         {
             s << "CLS";
@@ -148,7 +155,7 @@ std::stringstream decomp(unsigned short op)
                 s << std::hex << "LD F, V" << x;
                 break;
             case (0x0033):      //LD B, Vx
-                s << std::hex << "LD B, V " << x;
+                s << std::hex << "LD B, V" << x;
                 break;
             case (0x0055):      //LD [I], Vx
                 s << std::hex << "LD [I], V" << x;
@@ -168,24 +175,37 @@ std::stringstream decomp(unsigned short op)
 //The game draw
 void draw()
 {
-    sf::RectangleShape rs;
-    rs.setSize(sf::Vector2f(10, 10));
-    rs.setFillColor(sf::Color::Green);
+    int pcount = 0;
     for (int x = 0; x < 64; x++)
+    for (int y = 0; y < 32; y++)
     {
+        if (cm.screen[x][y])
+            pcount++;
+    }
+    if (pcount > 0)
+    {
+        sf::VertexArray pixels = sf::VertexArray(sf::Quads, pcount * 4);
+        int i = 0;
+        for (int x = 0; x < 64; x++)
         for (int y = 0; y < 32; y++)
         {
-            if (cm.screen[x][y] != 0)
+            if (cm.screen[x][y])
             {
-                rs.setPosition(sf::Vector2f(10 * x, 10 * y));
-                window->draw(rs);
+                pixels[i * 4 + 0].position = sf::Vector2f(x * 10, y * 10);
+                pixels[i * 4 + 1].position = sf::Vector2f(x * 10 + 10, y * 10);
+                pixels[i * 4 + 2].position = sf::Vector2f(x * 10 + 10, y * 10 + 10);
+                pixels[i * 4 + 3].position = sf::Vector2f(x * 10, y * 10 + 10);
+                i++;
             }
         }
+        for (int x = 0; x < pcount * 4; x++)
+            pixels[x].color = sf::Color::Green;
+        window->draw(pixels);
     }
 }
 
 //The debug window draw
-void debugdraw()
+void drawDebug()
 {
     if (debugMode)
     {
@@ -244,13 +264,13 @@ void debugdraw()
             s.str(std::string());
         }
 
-        s << "SOUND TIMER : 0x" << std::hex << (int)cm.getTimer();
+        s << "SOUND TIMER : 0x" << std::hex << (int)cm.getSoundTimer();
         text.setPosition(sf::Vector2f(200, 144));
         text.setString(s.str());
         debug->draw(text);
         s.str(std::string());
 
-        s << "DELAY TIMER : 0x" << std::hex << (int)cm.getSoundTimer();
+        s << "DELAY TIMER : 0x" << std::hex << (int)cm.getTimer();
         text.setPosition(sf::Vector2f(200, 160));
         text.setString(s.str());
         debug->draw(text);
@@ -287,8 +307,40 @@ void debugdraw()
     }
 }
 
-int main()
+void registerAllKeys()
 {
+    //Register all keys, from 0 to f
+    cm.keys[0] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad0);
+    cm.keys[1] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad1);
+    cm.keys[2] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad2);
+    cm.keys[3] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad3);
+    cm.keys[4] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad4);
+    cm.keys[5] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad5);
+    cm.keys[6] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad6);
+    cm.keys[7] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad7);
+    cm.keys[8] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad8);
+    cm.keys[9] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad9);
+    cm.keys[10] = sf::Keyboard::isKeyPressed(sf::Keyboard::A);
+    cm.keys[11] = sf::Keyboard::isKeyPressed(sf::Keyboard::B);
+    cm.keys[12] = sf::Keyboard::isKeyPressed(sf::Keyboard::C);
+    cm.keys[13] = sf::Keyboard::isKeyPressed(sf::Keyboard::D);
+    cm.keys[14] = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
+    cm.keys[15] = sf::Keyboard::isKeyPressed(sf::Keyboard::F);
+    cm.emulateCycle();
+}
+
+int main(int argc, char **argv)
+{
+    if (argc < 2)
+    {
+        std::cout << "You must specify a rom to load\n";
+        system("pause");
+        return 1;
+    }
+
+    window = new sf::RenderWindow(sf::VideoMode(640, 320), "Chip Eight Emu");
+    debug = new sf::RenderWindow(sf::VideoMode(600, 400), "Debug");
+
     debug->setPosition(sf::Vector2i());
     window->setPosition(sf::Vector2i(600, 0));
 
@@ -301,7 +353,7 @@ int main()
     //Init the machine and load the rom
     cm = ChipMachine();
     cm.init();
-    cm.loadProgram("roms/pong.c8");
+    cm.loadProgram(argv[1]);
 
     //The cpu runs 540 cycles per second
     window->setFramerateLimit(540);
@@ -360,34 +412,18 @@ int main()
         }
         if (!pause || step)
         {
-            //Register all keys, from 0 to f
-            cm.keys[0] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad0);
-            cm.keys[1] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad1);
-            cm.keys[2] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad2);
-            cm.keys[3] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad3);
-            cm.keys[4] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad4);
-            cm.keys[5] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad5);
-            cm.keys[6] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad6);
-            cm.keys[7] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad7);
-            cm.keys[8] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad8);
-            cm.keys[9] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad9);
-            cm.keys[10] = sf::Keyboard::isKeyPressed(sf::Keyboard::A);
-            cm.keys[11] = sf::Keyboard::isKeyPressed(sf::Keyboard::B);
-            cm.keys[12] = sf::Keyboard::isKeyPressed(sf::Keyboard::C);
-            cm.keys[13] = sf::Keyboard::isKeyPressed(sf::Keyboard::D);
-            cm.keys[14] = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
-            cm.keys[15] = sf::Keyboard::isKeyPressed(sf::Keyboard::F);
+            registerAllKeys();
             cm.emulateCycle();
         }
         step = false;
         //Draw the game
         window->clear(sf::Color(0, 50, 0));
         draw();
-        window->display();
         //Draw the debugger
         debug->clear(sf::Color::White);
-        debugdraw();
+        drawDebug();
         debug->display();
+        window->display();
     }
     delete(window);
     delete(debug);

@@ -5,6 +5,9 @@
 class ChipMachine
 {
     public:
+        //As i couldnt find a way to beep async while ST > 0
+        bool falseSound = true;
+
         static const int MEMSIZE = 4096;
         ChipMachine();
         ~ChipMachine();
