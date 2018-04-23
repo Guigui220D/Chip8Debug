@@ -45,3 +45,5 @@ tictac
 blitz
 blinky
 
+**This project is under Mozilla Public License 2.0**
+
