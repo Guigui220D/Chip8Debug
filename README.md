@@ -28,10 +28,7 @@ G : The ram explorer goes to the current pc
 Left & Right arrows : Navigate in the ram explorer
 
 **Sound**
-The sound does not exactly works like the original chip8
-When a sound is played, the game freezes during the sound
-Fortunately the sounds are very short
-You can deactivate that if you want, there is a boolean
+The sound can be muted by changing a bool
 
 **Tested ROMS (in the rom folder)**
 Working:

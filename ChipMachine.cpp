@@ -9,7 +9,7 @@
 
 ChipMachine::ChipMachine()
 {
-
+    sound.setBuffer(soundBuffer);
 }
 
 ChipMachine::~ChipMachine()
@@ -225,14 +225,26 @@ ChipMachine::emulateCycle()
                 delayTimer = v[x];
                 break;
             case (0x0018):      //LD ST, Vx
-                if (falseSound)
+                soundTimer = v[x];
+                if (!mute)
                 {
-                    Beep(440, v[x] * 1000 / 60);
-                }
-                else
-                {
-                    soundTimer = v[x];
-                    std::cout << "BEEP\n";
+                    int samples = v[x] * 22050 / 60;
+                    sf::Int16 squareWave[samples];
+                    sf::Int16 last = 0x0FFF;
+                    int j = 0;
+                    for (int i = 0; i < samples; i++)
+                    {
+                        squareWave[i] = last;
+                        j++;
+                        if (j >= 50)
+                        {
+                            last = (last ^ 0x0FFF);
+                            j = 0;
+                        }
+                    }
+                    soundBuffer.loadFromSamples(squareWave, samples, 1, 22050);
+                    sound.setBuffer(soundBuffer);
+                    sound.play();
                 }
                 break;
             case (0x001E):      //ADD I, Vx

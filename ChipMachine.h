@@ -1,12 +1,15 @@
 #ifndef CHIPMACHINE_H
 #define CHIPMACHINE_H
 #include <SFML/System.hpp>
+#include <SFML/Audio.hpp>
 
 class ChipMachine
 {
     public:
-        //As i couldnt find a way to beep async while ST > 0
-        bool falseSound = true;
+        //For sound
+        sf::SoundBuffer soundBuffer;
+        sf::Sound sound;
+        bool mute = false;
 
         static const int MEMSIZE = 4096;
         ChipMachine();
