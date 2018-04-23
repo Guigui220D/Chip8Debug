@@ -323,7 +323,7 @@ void drawDebug()
 void registerAllKeys(sf::Keyboard::Key keys[16])
 {
     //Register all keys, from 0 to f
-    if (window.hasFocus() || debug.hasFocus())
+    if (window->hasFocus() || debug->hasFocus())
     {
         for (int i = 0; i < 16; i++)
         {
