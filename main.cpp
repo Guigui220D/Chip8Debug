@@ -24,6 +24,14 @@ bool step = false;
 //For the ram explorer in the debugger
 unsigned short explorerPos = 0x200;
 
+bool smallPixels = true;
+unsigned colorMode = 2;
+const unsigned maxModes = 6;
+//Background color
+sf::Color bColors[] = {sf::Color::Black, sf::Color::White, sf::Color(0, 50, 0), sf::Color(230, 255, 213), sf::Color::Cyan, sf::Color::Red};
+//Foreground (ON pixels) color
+sf::Color fColors[] = {sf::Color::White, sf::Color::Black, sf::Color::Green, sf::Color(8, 30, 7), sf::Color::Magenta, sf::Color::Yellow};
+
 //Give the name of an op, for debugging
 std::stringstream decomp(unsigned short op)
 {
@@ -191,15 +199,15 @@ void draw()
         {
             if (cm.screen[x][y])
             {
-                pixels[i * 4 + 0].position = sf::Vector2f(x * 10, y * 10);
-                pixels[i * 4 + 1].position = sf::Vector2f(x * 10 + 10, y * 10);
-                pixels[i * 4 + 2].position = sf::Vector2f(x * 10 + 10, y * 10 + 10);
-                pixels[i * 4 + 3].position = sf::Vector2f(x * 10, y * 10 + 10);
+                pixels[i * 4 + 0].position = sf::Vector2f(x * 10 + smallPixels, y * 10 + smallPixels);
+                pixels[i * 4 + 1].position = sf::Vector2f(x * 10 + 10 - smallPixels, y * 10 + smallPixels);
+                pixels[i * 4 + 2].position = sf::Vector2f(x * 10 + 10 - smallPixels, y * 10 + 10 - smallPixels);
+                pixels[i * 4 + 3].position = sf::Vector2f(x * 10 + smallPixels, y * 10 + 10 - smallPixels);
                 i++;
             }
         }
         for (int x = 0; x < pcount * 4; x++)
-            pixels[x].color = sf::Color::Green;
+            pixels[x].color = fColors[colorMode];
         window->draw(pixels);
     }
 }
@@ -219,6 +227,9 @@ void drawDebug()
             text.setString("PAUSED");
             debug->draw(text);
         }
+        text.setPosition(sf::Vector2f(10, 386));
+        text.setString("CHANGE COLOR MODE : O, CHANGE PIXEL MODE : I");
+        debug->draw(text);
 
         s << "PC : 0x " << std::hex << cm.getPC();
         text.setPosition(sf::Vector2f(10, 0));
@@ -339,7 +350,7 @@ int main(int argc, char **argv)
     }
 
     window = new sf::RenderWindow(sf::VideoMode(640, 320), "Chip Eight Emu");
-    debug = new sf::RenderWindow(sf::VideoMode(600, 400), "Debug");
+    debug = new sf::RenderWindow(sf::VideoMode(600, 432), "Debug");
 
     debug->setPosition(sf::Vector2i());
     window->setPosition(sf::Vector2i(600, 0));
@@ -378,6 +389,17 @@ int main(int argc, char **argv)
                 //Reset
                 if (event.key.code == sf::Keyboard::R)
                     cm.init();
+                //Change color mode
+                if (event.key.code == sf::Keyboard::O)
+                {
+                    colorMode++;
+                    colorMode %= maxModes;
+                }
+                //Change pixel mode
+                if (event.key.code == sf::Keyboard::I)
+                {
+                    smallPixels = !smallPixels;
+                }
             }
         }
         //Same for the debugger
@@ -408,6 +430,17 @@ int main(int argc, char **argv)
                 //Enable/disable the debugger
                 if (devent.key.code == sf::Keyboard::M)
                     debugMode = !debugMode;
+                //Change color mode
+                if (devent.key.code == sf::Keyboard::O)
+                {
+                    colorMode++;
+                    colorMode %= maxModes;
+                }
+                //Change pixel mode
+                if (devent.key.code == sf::Keyboard::I)
+                {
+                    smallPixels = !smallPixels;
+                }
             }
         }
         if (!pause || step)
@@ -417,7 +450,7 @@ int main(int argc, char **argv)
         }
         step = false;
         //Draw the game
-        window->clear(sf::Color(0, 50, 0));
+        window->clear(bColors[colorMode]);
         draw();
         //Draw the debugger
         debug->clear(sf::Color::White);
