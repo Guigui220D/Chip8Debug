@@ -32,6 +32,8 @@ sf::Color bColors[] = {sf::Color::Black, sf::Color::White, sf::Color(0, 50, 0), 
 //Foreground (ON pixels) color
 sf::Color fColors[] = {sf::Color::White, sf::Color::Black, sf::Color::Green, sf::Color(8, 30, 7), sf::Color::Magenta, sf::Color::Yellow};
 
+sf::Keyboard::Key azertyKeys[16] = {sf::Keyboard::X, sf::Keyboard::Num1, sf::Keyboard::Num2, sf::Keyboard::Num3, sf::Keyboard::A, sf::Keyboard::Z, sf::Keyboard::E, sf::Keyboard::Q, sf::Keyboard::S, sf::Keyboard::D, sf::Keyboard::W, sf::Keyboard::C, sf::Keyboard::Num4, sf::Keyboard::R, sf::Keyboard::F, sf::Keyboard::V};
+
 //Give the name of an op, for debugging
 std::stringstream decomp(unsigned short op)
 {
@@ -219,7 +221,7 @@ void drawDebug()
     {
         std::stringstream s;
         text.setPosition(sf::Vector2f(10, 370));
-        text.setString("PAUSE : P, STEP : S, RESET : R, DEBUG MODE : M (ON)");
+        text.setString("PAUSE : P, STEP : M, RESET : L, DEBUG MODE : K (ON)");
         debug->draw(text);
         if (pause)
         {
@@ -313,31 +315,18 @@ void drawDebug()
         text.setString("DEBUG DISABLED");
         debug->draw(text);
         text.setPosition(sf::Vector2f(10, 32));
-        text.setString("PRESS M TO SWITCH IT ON");
+        text.setString("PRESS K TO SWITCH IT ON");
         debug->draw(text);
     }
 }
 
-void registerAllKeys()
+void registerAllKeys(sf::Keyboard::Key keys[16])
 {
     //Register all keys, from 0 to f
-    cm.keys[0] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad0);
-    cm.keys[1] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad1);
-    cm.keys[2] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad2);
-    cm.keys[3] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad3);
-    cm.keys[4] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad4);
-    cm.keys[5] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad5);
-    cm.keys[6] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad6);
-    cm.keys[7] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad7);
-    cm.keys[8] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad8);
-    cm.keys[9] = sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad9);
-    cm.keys[10] = sf::Keyboard::isKeyPressed(sf::Keyboard::A);
-    cm.keys[11] = sf::Keyboard::isKeyPressed(sf::Keyboard::B);
-    cm.keys[12] = sf::Keyboard::isKeyPressed(sf::Keyboard::C);
-    cm.keys[13] = sf::Keyboard::isKeyPressed(sf::Keyboard::D);
-    cm.keys[14] = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
-    cm.keys[15] = sf::Keyboard::isKeyPressed(sf::Keyboard::F);
-    cm.emulateCycle();
+    for (int i = 0; i < 16; i++)
+    {
+        cm.keys[i] = sf::Keyboard::isKeyPressed(keys[i]);
+    }
 }
 
 int main(int argc, char **argv)
@@ -384,10 +373,10 @@ int main(int argc, char **argv)
                 if (event.key.code == sf::Keyboard::P)
                     pause = !pause;
                 //Step
-                if (event.key.code == sf::Keyboard::S && pause)
+                if (event.key.code == sf::Keyboard::M && pause)
                     step = true;
                 //Reset
-                if (event.key.code == sf::Keyboard::R)
+                if (event.key.code == sf::Keyboard::L)
                     cm.init();
                 //Change color mode
                 if (event.key.code == sf::Keyboard::O)
@@ -414,7 +403,7 @@ int main(int argc, char **argv)
                 if (devent.key.code == sf::Keyboard::P)
                     pause = !pause;
                 //Step
-                if (devent.key.code == sf::Keyboard::S && pause)
+                if (devent.key.code == sf::Keyboard::M && pause)
                     step = true;
                 //Navigate in the ram explorer
                 if (devent.key.code == sf::Keyboard::Left && debugMode)
@@ -425,10 +414,10 @@ int main(int argc, char **argv)
                 if (devent.key.code == sf::Keyboard::G && debugMode)
                     explorerPos = cm.getPC();
                 //Reset
-                if (devent.key.code == sf::Keyboard::R)
+                if (devent.key.code == sf::Keyboard::L)
                     cm.init();
                 //Enable/disable the debugger
-                if (devent.key.code == sf::Keyboard::M)
+                if (devent.key.code == sf::Keyboard::K)
                     debugMode = !debugMode;
                 //Change color mode
                 if (devent.key.code == sf::Keyboard::O)
@@ -445,7 +434,7 @@ int main(int argc, char **argv)
         }
         if (!pause || step)
         {
-            registerAllKeys();
+            registerAllKeys(azertyKeys);
             cm.emulateCycle();
         }
         step = false;
