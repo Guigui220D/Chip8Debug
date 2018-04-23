@@ -2,6 +2,12 @@
 __A chip8 interpreter / debugger__
 *Uses sfml*
 
+![alt text](https://github.com/Guigui220D/Chip8Debug/blob/master/screenshots/debug.PNG)
+![alt text](https://github.com/Guigui220D/Chip8Debug/blob/master/screenshots/pong.PNG)
+![alt text](https://github.com/Guigui220D/Chip8Debug/blob/master/screenshots/tetris.PNG)
+![alt text](https://github.com/Guigui220D/Chip8Debug/blob/master/screenshots/title.PNG)
+![alt text](https://github.com/Guigui220D/Chip8Debug/blob/master/screenshots/blackwhite.PNG)
+
 **To compile**
 You need SFML Graphics, Window and System
 
