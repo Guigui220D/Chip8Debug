@@ -24,7 +24,7 @@ bool step = false;
 //For the ram explorer in the debugger
 unsigned short explorerPos = 0x200;
 
-bool smallPixels = true;
+bool smallPixels = false;
 unsigned colorMode = 2;
 const unsigned maxModes = 6;
 //Background color
