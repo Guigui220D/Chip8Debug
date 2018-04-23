@@ -230,7 +230,10 @@ ChipMachine::emulateCycle()
                     Beep(440, v[x] * 1000 / 60);
                 }
                 else
+                {
                     soundTimer = v[x];
+                    std::cout << "BEEP\n";
+                }
                 break;
             case (0x001E):      //ADD I, Vx
                 if(i + v[x] > 0x0FFF)

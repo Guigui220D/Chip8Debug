@@ -323,9 +323,12 @@ void drawDebug()
 void registerAllKeys(sf::Keyboard::Key keys[16])
 {
     //Register all keys, from 0 to f
-    for (int i = 0; i < 16; i++)
+    if (window.hasFocus() || debug.hasFocus())
     {
-        cm.keys[i] = sf::Keyboard::isKeyPressed(keys[i]);
+        for (int i = 0; i < 16; i++)
+        {
+            cm.keys[i] = sf::Keyboard::isKeyPressed(keys[i]);
+        }
     }
 }
 
