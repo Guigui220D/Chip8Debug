@@ -9,7 +9,7 @@ __A chip8 interpreter / debugger__
 ![alt text](https://github.com/Guigui220D/Chip8Debug/blob/master/screenshots/blackwhite.PNG)
 
 **To compile**
-You need SFML Graphics, Window and System
+You need SFML Graphics, Window, System and Audio
 
 **To execute**
 You must specify a rom to load in the arguments
