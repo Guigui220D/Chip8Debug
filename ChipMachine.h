@@ -19,7 +19,7 @@ class ChipMachine
         void emulateCycle();
         unsigned char screen[64][32];	//The screen and its 2048 pixels
 		unsigned char keys[16];	        //The keys states
-		bool draw;
+
 		bool hasToStop;
 
 		unsigned char getVxReg(int x);

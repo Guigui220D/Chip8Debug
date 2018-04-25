@@ -299,7 +299,6 @@ ChipMachine::clearScreen()
     for (unsigned char x = 0; x < 64; x++)
         for (unsigned char y = 0; y < 32; y++)
             screen[x][y] = 0;
-    draw = true;
 }
 
 //A rom file is loaded from disk using its path, and put in ram from 0x200
